@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite Model Gallery</title>
+    <style>
+        :root {
+            --primary: #ff6b6b;
+            --dark: #333;
+            --light: #f5f5f5;
+            --gray: #ddd;
+            --header-height: 300px;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .header-image {
+            width: 100%;
+            height: var(--header-height);
+            object-fit: cover;
+            display: block;
+        }
+        
+        .header-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: var(--header-height);
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .header-overlay h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .header-overlay p {
+            font-size: 1.2rem;
+            max-width: 600px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        
+        .header-container {
+            position: relative;
+            margin-bottom: 30px;
+        }
+        
+        .ad-banner {
+            width: 100%;
+            max-width: 728px;
+            margin: 20px auto;
+            text-align: center;
+            padding: 0 20px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 20px auto;
+            max-width: 1200px;
+            padding: 0 20px;
+        }
+        
+        select, button {
+            padding: 12px 20px;
+            border-radius: 5px;
+            border: 1px solid var(--gray);
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        select {
+            min-width: 250px;
+            background-color: white;
+        }
+        
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            background-color: var(--gray);
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        #image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .image-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .image-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+        
+        .image-card img {
+            width: 100%;
+            height: 350px;
+            object-fit: cover;
+        }
+        
+        .image-info {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+        
+        .photographer {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+        
+        .image-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: auto;
+        }
+        
+        .action-btn {
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-grow: 1;
+            justify-content: center;
+        }
+        
+        .download-btn {
+            background-color: #4a90e2;
+        }
+        
+        .favorite-btn {
+            background-color: #f5f5f5;
+            color: var(--dark);
+            border: 1px solid var(--gray);
+        }
+        
+        .favorite-btn.favorited {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 30px auto;
+            padding: 0 20px;
+            max-width: 1200px;
+        }
+        
+        .loading {
+            text-align: center;
+            font-size: 18px;
+            margin: 50px 0;
+            display: none;
+        }
+        
+        .spinner {
+            font-size: 40px;
+            margin-bottom: 15px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+        
+        .no-results {
+            text-align: center;
+            grid-column: 1 / -1;
+            padding: 50px;
+            font-size: 18px;
+            color: #666;
+        }
+        
+        /* Social Bar Styles */
+        .social-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #333;
+            color: white;
+            padding: 10px;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .social-bar a {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .header-overlay h1 {
+                font-size: 2rem;
+            }
+            
+            .header-overlay p {
+                font-size: 1rem;
+            }
+            
+            #image-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            select {
+                width: 100%;
+            }
+            
+            .ad-banner {
+                padding: 0 10px;
+            }
+        }
+    </style>
+    
+    <!-- Adsterra Banner Ad Script -->
+    <script type="text/javascript">
+        atOptions = {
+            'key' : 'c859b9615d020de6fceea5c594dafa8e',
+            'format' : 'iframe',
+            'height' : 90,
+            'width' : 728,
+            'params' : {}
+        };
+    </script>
+    <script type="text/javascript" src="//motiveinsulationflamboyant.com/c859b9615d020de6fceea5c594dafa8e/invoke.js"></script>
+    
+    <!-- Adsterra Popunder Script -->
+    <script type='text/javascript' src='//motiveinsulationflamboyant.com/58/46/d2/5846d20dd75a954d3a99417db4f9ec3a.js'></script>
+    
+    <!-- Adsterra Social Bar Script -->
+    <script type='text/javascript' src='//motiveinsulationflamboyant.com/62/d3/59/62d3599a19185d3502aeaa667f73a80a.js'></script>
+</head>
+<body>
+    <div class="header-container">
+        <img src="https://blogger.googleusercontent.com/img/a/AVvXsEgy97MwB_D2gGcPpX32foY_JMHT5QJpA7-xfu1pbu2rP7QLmCwiyyuecb_FCPxuzc0hpkaerQjBWqXxpqeT9EpBPGtEpA1ZTC3yBr8KV49SdZV6FWUTCQo10m58Am9WhkOJqPXNkdAp6nXQNXP8bDXFGA7PXIpnAqFySFsOlHi8WnrdE5c14gDaPeL9DXA" 
+             alt="Fashion Models Header" class="header-image">
+        <div class="header-overlay">
+            <h1>Elite Model Gallery</h1>
+            <p>Discover the world's most stunning fashion and beauty photography</p>
+        </div>
+    </div>
+    
+    <!-- Banner Ad Container -->
+    <div class="ad-banner">
+        <script type="text/javascript">
+            document.write('<scr' + 'ipt type="text/javascript" src="//motiveinsulationflamboyant.com/c859b9615d020de6fceea5c594dafa8e/invoke.js"></scr' + 'ipt>');
+        </script>
+    </div>
+    
+    <div class="controls">
+        <select id="category">
+            <option value="lingerie model">Lingerie Models</option>
+            <option value="bikini model">Bikini Models</option>
+            <option value="fashion model">Fashion Models</option>
+            <option value="swimsuit model">Swimsuit Models</option>
+            <option value="curvy model">Curvy Models</option>
+            <option value="petite model">Petite Models</option>
+            <option value="fitness model">Fitness Models</option>
+            <option value="runway model">Runway Models</option>
+            <option value="glamour model">Glamour Models</option>
+            <option value="beach model">Beach Models</option>
+            <option value="studio model">Studio Models</option>
+            <option value="editorial model">Editorial Models</option>
+        </select>
+        
+        <button id="search-btn">
+            <span>🔍</span> Search
+        </button>
+        <button id="view-favorites">
+            <span>❤️</span> View Favorites
+        </button>
+    </div>
+    
+    <div class="loading" id="loading">
+        <div class="spinner">🌀</div>
+        <p>Loading beautiful images...</p>
+    </div>
+    
+    <div id="image-grid"></div>
+    
+    <div class="pagination" id="pagination">
+        <button id="prev-btn" disabled>⬅ Previous</button>
+        <span id="page-info">Page 1</span>
+        <button id="next-btn" disabled>Next ➡</button>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // API Configuration
+            const API_KEY = 'lj6yQDVoscGcjGHJ9I39GmEJbyKcagNDpRL3eFsnpdol0D3rQMUj8i3E';
+            let currentPage = 1;
+            let currentCategory = '';
+            let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            let currentResults = [];
+            let interactionCount = 0;
+            let directLinkShown = false;
+            
+            // DOM Elements
+            const categorySelect = document.getElementById('category');
+            const searchBtn = document.getElementById('search-btn');
+            const viewFavoritesBtn = document.getElementById('view-favorites');
+            const imageGrid = document.getElementById('image-grid');
+            const loadingIndicator = document.getElementById('loading');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const pageInfo = document.getElementById('page-info');
+            
+            // Initialize with lingerie models first
+            currentCategory = 'lingerie model';
+            categorySelect.value = currentCategory;
+            fetchNewImages(currentCategory);
+            
+            // Event Listeners
+            searchBtn.addEventListener('click', () => {
+                currentCategory = categorySelect.value;
+                currentPage = 1;
+                fetchNewImages(currentCategory);
+            });
+            
+            viewFavoritesBtn.addEventListener('click', showFavorites);
+            
+            prevBtn.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    displayCurrentResults();
+                }
+            });
+            
+            nextBtn.addEventListener('click', () => {
+                if (currentPage * 12 < currentResults.length) {
+                    currentPage++;
+                    displayCurrentResults();
+                } else {
+                    currentPage++;
+                    fetchMoreImages(currentCategory);
+                }
+            });
+            
+            // Fetch New Images (resets pagination)
+            async function fetchNewImages(category) {
+                loadingIndicator.style.display = 'block';
+                imageGrid.innerHTML = '';
+                currentPage = 1;
+                currentResults = [];
+                interactionCount = 0;
+                directLinkShown = false;
+                
+                const query = category;
+                const url = `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=80&page=1`;
+                
+                try {
+                    const response = await fetch(url, {
+                        headers: {
+                            'Authorization': API_KEY
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`API Error: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    currentResults = data.photos;
+                    displayCurrentResults();
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                    imageGrid.innerHTML = '<p class="no-results">Failed to load images. Please try again later.</p>';
+                } finally {
+                    loadingIndicator.style.display = 'none';
+                    updatePagination();
+                }
+            }
+            
+            // Fetch More Images (for pagination)
+            async function fetchMoreImages(category) {
+                loadingIndicator.style.display = 'block';
+                
+                const query = category;
+                const url = `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=80&page=${Math.ceil(currentPage / 7)}`;
+                
+                try {
+                    const response = await fetch(url, {
+                        headers: {
+                            'Authorization': API_KEY
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`API Error: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    currentResults = [...currentResults, ...data.photos];
+                    displayCurrentResults();
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                    currentPage--; // Revert page increment if fetch fails
+                } finally {
+                    loadingIndicator.style.display = 'none';
+                    updatePagination();
+                }
+            }
+            
+            // Display Current Page of Results
+            function displayCurrentResults() {
+                imageGrid.innerHTML = '';
+                
+                const startIdx = (currentPage - 1) * 12;
+                const endIdx = startIdx + 12;
+                const pagePhotos = currentResults.slice(startIdx, endIdx);
+                
+                if (pagePhotos.length === 0) {
+                    imageGrid.innerHTML = '<p class="no-results">No images found for this category.</p>';
+                    return;
+                }
+                
+                pagePhotos.forEach(photo => {
+                    const isFavorite = favorites.some(fav => fav.id === photo.id);
+                    
+                    const imageCard = document.createElement('div');
+                    imageCard.className = 'image-card';
+                    imageCard.dataset.id = photo.id;
+                    
+                    imageCard.innerHTML = `
+                        <img src="${photo.src.large}" alt="${photo.photographer}" loading="lazy">
+                        <div class="image-info">
+                            <span class="photographer">Photo by ${photo.photographer}</span>
+                            <div class="image-actions">
+                                <button class="action-btn download-btn">
+                                    <span>⤓</span> DOWNLOAD
+                                </button>
+                                <button class="action-btn favorite-btn ${isFavorite ? 'favorited' : ''}">
+                                    <span>${isFavorite ? '❤️' : '🤍'}</span> FAVORITE
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    imageGrid.appendChild(imageCard);
+                    
+                    // Add event listeners to new buttons
+                    const card = imageGrid.lastElementChild;
+                    card.querySelector('.download-btn').addEventListener('click', () => handleDownload(photo.src.original));
+                    card.querySelector('.favorite-btn').addEventListener('click', () => handleFavorite(photo, card));
+                });
+                
+                updatePagination();
+            }
+            
+            // Handle Download with Adsterra logic
+            function handleDownload(url) {
+                interactionCount++;
+                
+                // Show direct link on first interaction
+                if (!directLinkShown) {
+                    directLinkShown = true;
+                    window.open('https://motiveinsulationflamboyant.com/x6mjgry45y?key=bc63ecbd28205e1bbb1e1f5b5bed543b', '_blank');
+                    return;
+                }
+                
+                // Normal download after first interaction
+                downloadImage(url);
+                
+                // Trigger popunder after 5 interactions
+                if (interactionCount >= 5) {
+                    interactionCount = 0; // Reset counter
+                    // Popunder is already loaded from the script in head
+                }
+            }
+            
+            // Handle Favorite with Adsterra logic
+            function handleFavorite(photo, card) {
+                interactionCount++;
+                
+                // Show direct link on first interaction
+                if (!directLinkShown) {
+                    directLinkShown = true;
+                    window.open('https://motiveinsulationflamboyant.com/x6mjgry45y?key=bc63ecbd28205e1bbb1e1f5b5bed543b', '_blank');
+                    return;
+                }
+                
+                // Normal favorite after first interaction
+                toggleFavorite(photo, card);
+                
+                // Trigger popunder after 5 interactions
+                if (interactionCount >= 5) {
+                    interactionCount = 0; // Reset counter
+                    // Popunder is already loaded from the script in head
+                }
+            }
+            
+            // Update Pagination Controls
+            function updatePagination() {
+                pageInfo.textContent = `Page ${currentPage}`;
+                
+                prevBtn.disabled = currentPage <= 1;
+                
+                // Disable next button if we don't have more results and aren't at the end
+                const hasMore = currentPage * 12 < currentResults.length || 
+                               (currentResults.length > 0 && currentResults.length % 80 === 0);
+                nextBtn.disabled = !hasMore;
+            }
+            
+            // Download Image
+            function downloadImage(url) {
+                fetch(url)
+                    .then(response => response.blob())
+                    .then(blob => {
+                        const a = document.createElement('a');
+                        a.href = URL.createObjectURL(blob);
+                        a.download = `model-${Date.now()}.jpg`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    })
+                    .catch(() => alert('Download failed. Please try again.'));
+            }
+            
+            // Toggle Favorite
+            function toggleFavorite(photo, card) {
+                const index = favorites.findIndex(fav => fav.id === photo.id);
+                
+                if (index === -1) {
+                    favorites.push(photo);
+                } else {
+                    favorites.splice(index, 1);
+                }
+                
+                localStorage.setItem('favorites', JSON.stringify(favorites));
+                
+                // Update UI
+                const btn = card.querySelector('.favorite-btn');
+                const icon = btn.querySelector('span');
+                btn.classList.toggle('favorited');
+                icon.textContent = btn.classList.contains('favorited') ? '❤️' : '🤍';
+            }
+            
+            // Show Favorites
+            function showFavorites() {
+                currentPage = 1;
+                currentResults = favorites;
+                displayCurrentResults();
+                
+                if (favorites.length === 0) {
+                    imageGrid.innerHTML = '<p class="no-results">No favorites yet. Click the FAVORITE button to save images!</p>';
+                }
+                
+                // Update pagination for favorites
+                prevBtn.disabled = true;
+                nextBtn.disabled = favorites.length <= 12;
+                pageInfo.textContent = `Page ${currentPage}`;
+            }
+        });
+    </script>
+</body>
+</html>
